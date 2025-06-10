@@ -22,49 +22,37 @@ if !Path::new(folder_path).is_dir() {
 }
 
 println!("You selected folder: {}", folder_path);
+    
+    let entries = fs::read_dir(folder_path).unwrap();
+    for entry_result in entries {
+        let entry = entry_result.unwrap();
+        let path = entry.path();
 
-let entries = fs::read_dir(folder_path).unwrap();
-for entry_result in entries {
-    let entry = entry_result.unwrap();
-    let path = entry.path();
-    let name = entry.file_name();
+        let metadata = entry.metadata().unwrap();
+        if !metadata.is_file() {
+            continue;
+        }
 
-    println!("Found {:?}", name);
+        if let Some(ext) = path.extension() {
+            if let Some(ext_str) = ext.to_str() {
+                let folder_name = match ext_str.to_lowercase().as_str() {
+                    "png" | "jpg" | "jpeg" | "gif" => "Images",
+                    "pdf" => "PDFs",
+                    "txt" | "md" => "Text",
+                    "mp4" | "mov" => "Videos",
+                    "zip" | "rar" => "Archives",
+                    _ => "Others",
+                };
 
-}
+                let new_folder_path = format!("{}/{}", folder_path, folder_name);
+                fs::create_dir_all(&new_folder_path).unwrap();
 
-
-for entry_result in entries { 
-    let entry = entry_result.unwrap();
-    let metadata = entry.metadata().unwrap();
-    let path = entry.path();
-    if metadata.is_file() {
-        let name= entry.file_name();
-        println!("File: {:?}", name);
+                let file_name = entry.file_name();
+                let new_path = format!("{}/{}", new_folder_path, file_name.to_string_lossy());
+                fs::rename(&path, new_path).unwrap();
+            }
+        }
     }
-    if let Some(ext) = path.extension() {
-    if let Some(ext_str) = ext.to_str() {
-        let folder_name = match ext_str.to_lowercase().as_str() {
-            "png" | "jpg" | "jpeg" | "gif" =>"Images",
-            "pdf"=>"PDFs",
-            "txt" | "md" =>"Text",
-            "mp4" | "mov" =>"Videos",
-            "zip" | "rar" =>"Archives",
-            _ => "Others",
-        };
-        let new_folder_path = format!("{}/{}", folder_path, folder_name);
-        fs::create_dir_all(&new_folder_path).unwrap(); // 
-        let file_name = entry.file_name();
-        let new_path = format!("{}/{}", new_folder_path, file_name.to_string_lossy());
-        fs::rename(path, new_path).unwrap(); // 
-
-
-    }
-}
-}
-
-
-
 }
 
 
