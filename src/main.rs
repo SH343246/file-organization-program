@@ -1,20 +1,23 @@
 use std::env;
 use std::path::Path;
 use std::fs;
+use clap::Parser;
 
 
-
+#[derive(Parser, Debug)]
+#[command(name = "File Organizer")]
+#[command(about = "Sorts files into folders by type", long_about = None)]
+struct Args {
+    folder: String,
+    #[arg(short, long)]
+    dry_run: bool,
+}
 
 
 fn main() {
-let args: Vec<String> = env::args().collect();
+let args = Args::parse();
 
-if args.len() < 2 {
-    println!("Usage: file-organizer <folder-path>");
-    return;
-}
-
-let folder_path = &args[1];
+let folder_path = &args.folder;
 
 if !Path::new(folder_path).is_dir() {
     println!("The provided path is not a valid folder.");
@@ -45,11 +48,17 @@ println!("You selected folder: {}", folder_path);
                 };
 
                 let new_folder_path = format!("{}/{}", folder_path, folder_name);
-                fs::create_dir_all(&new_folder_path).unwrap();
 
                 let file_name = entry.file_name();
                 let new_path = format!("{}/{}", new_folder_path, file_name.to_string_lossy());
-                fs::rename(&path, new_path).unwrap();
+                if args.dry_run {
+                println!("[DRY RUN] Would move {:?} to: {}", file_name, new_path);
+                } else {
+                fs::create_dir_all(&new_folder_path).unwrap();
+                fs::rename(&path, &new_path).unwrap();
+                println!("Moved {:?} to: {}", file_name, new_path);
+}
+
             }
         }
     }
