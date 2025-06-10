@@ -39,11 +39,18 @@ println!("You selected folder: {}", folder_path);
         if let Some(ext) = path.extension() {
             if let Some(ext_str) = ext.to_str() {
                 let folder_name = match ext_str.to_lowercase().as_str() {
-                    "png" | "jpg" | "jpeg" | "gif" => "Images",
+                    "png" | "jpg" | "jpeg" | "gif" | "bmp" | "svg" | "webp" => "Images",
                     "pdf" => "PDFs",
                     "txt" | "md" => "Text",
                     "mp4" | "mov" => "Videos",
                     "zip" | "rar" => "Archives",
+                    "doc" | "docx" => "Word",
+                    "xls" | "xlsx" => "Excel",
+                    "ppt" | "pptx" => "PowerPoint",
+                    "mp3" | "wav" | "flac" => "Audio",
+                    "exe" | "msi" => "Executables",
+                    "json" | "xml" | "yaml" => "Data",
+                    "html" | "css" | "js" => "Web",
                     _ => "Others",
                 };
 
