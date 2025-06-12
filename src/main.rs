@@ -2,6 +2,12 @@ use std::env;
 use std::path::Path;
 use std::fs;
 use clap::Parser;
+use std::collections::HashMap;
+use std::fs::File;
+use std::io::BufReader;
+use serde::Deserialize;
+use serde_json;
+
 
 
 #[derive(Parser, Debug)]
@@ -13,14 +19,22 @@ struct Args {
     dry_run: bool,
 }
 
+fn load_config(path: &str) -> HashMap<String, String> {
+    let file = File::open(path).expect("Could not open config file");
+    let reader = BufReader::new(file);
+    serde_json::from_reader(reader).expect("Error trying to read tjhe file")
+}
 
 fn main() {
+
+let config = load_config("config.json");
+
 let args = Args::parse();
 
 let folder_path = &args.folder;
 
 if !Path::new(folder_path).is_dir() {
-    println!("The provided path is not a valid folder.");
+    println!("The path is not a valid folder.");
     return;
 }
 
@@ -38,22 +52,10 @@ println!("You selected folder: {}", folder_path);
 
         if let Some(ext) = path.extension() {
             if let Some(ext_str) = ext.to_str() {
-                let folder_name = match ext_str.to_lowercase().as_str() {
-                    "png" | "jpg" | "jpeg" | "gif" | "bmp" | "svg" | "webp" => "Images",
-                    "pdf" => "PDFs",
-                    "txt" | "md" => "Text",
-                    "mp4" | "mov" => "Videos",
-                    "zip" | "rar" => "Archives",
-                    "doc" | "docx" => "Word",
-                    "xls" | "xlsx" => "Excel",
-                    "ppt" | "pptx" => "PowerPoint",
-                    "mp3" | "wav" | "flac" => "Audio",
-                    "exe" | "msi" => "Executables",
-                    "json" | "xml" | "yaml" => "Data",
-                    "html" | "css" | "js" => "Web",
-                    _ => "Others",
-                };
-
+                let folder_name = config
+                    .get(&ext_str.to_lowercase())
+                    .map(|s| s.as_str())
+                    .unwrap_or("Others");
                 let new_folder_path = format!("{}/{}", folder_path, folder_name);
 
                 let file_name = entry.file_name();
