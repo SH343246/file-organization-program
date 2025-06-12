@@ -7,7 +7,7 @@ use std::fs::File;
 use std::io::BufReader;
 use serde::Deserialize;
 use serde_json;
-
+use walkdir::WalkDir;
 
 
 #[derive(Parser, Debug)]
@@ -40,15 +40,17 @@ if !Path::new(folder_path).is_dir() {
 
 println!("You selected folder: {}", folder_path);
     
-    let entries = fs::read_dir(folder_path).unwrap();
-    for entry_result in entries {
-        let entry = entry_result.unwrap();
+    for entry_result in WalkDir::new(folder_path) {
+    let entry = match entry_result {
+            Ok(e) => e,
+            Err(_) => continue,
+        };      
         let path = entry.path();
 
-        let metadata = entry.metadata().unwrap();
-        if !metadata.is_file() {
+         if !path.is_file() {
             continue;
         }
+
 
         if let Some(ext) = path.extension() {
             if let Some(ext_str) = ext.to_str() {
