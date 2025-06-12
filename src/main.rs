@@ -9,6 +9,10 @@ use serde::Deserialize;
 use serde_json;
 use walkdir::WalkDir;
 
+#[macro_use]
+extern crate log;
+
+
 
 #[derive(Parser, Debug)]
 #[command(name = "File Organizer")]
@@ -26,6 +30,7 @@ fn load_config(path: &str) -> HashMap<String, String> {
 }
 
 fn main() {
+env_logger::init();
 
 let config = load_config("config.json");
 
@@ -34,11 +39,11 @@ let args = Args::parse();
 let folder_path = &args.folder;
 
 if !Path::new(folder_path).is_dir() {
-    println!("The path is not a valid folder.");
+    error!("The path is not a valid folder.");
     return;
 }
 
-println!("You selected folder: {}", folder_path);
+info!("You selected folder: {}", folder_path);
     
     for entry_result in WalkDir::new(folder_path) {
     let entry = match entry_result {
@@ -63,11 +68,11 @@ println!("You selected folder: {}", folder_path);
                 let file_name = entry.file_name();
                 let new_path = format!("{}/{}", new_folder_path, file_name.to_string_lossy());
                 if args.dry_run {
-                println!("[DRY RUN] Would move {:?} to: {}", file_name, new_path);
+                info!("[DRY RUN] Would move {:?} to: {}", file_name, new_path);
                 } else {
                 fs::create_dir_all(&new_folder_path).unwrap();
                 fs::rename(&path, &new_path).unwrap();
-                println!("Moved {:?} to: {}", file_name, new_path);
+                info!("Moved {:?} to: {}", file_name, new_path);
 }
 
             }
